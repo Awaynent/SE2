@@ -9,3 +9,4 @@ Blink test aims to counter any picture/photo/image attempts rather than an actua
 Phrase test aims to counter any pre-recored messages attempts rather than an actual human being trying to verify.
 Note: data that might be left in the database is the developers themselves thats testing the project itself.
 Note: download vosk models EN (vosk-model-small-en-us-0.15) and PH (vosk-model-tl-ph-generic-0.6).
+After downloading those models create a folder named models and extract the zips inside that folder.
