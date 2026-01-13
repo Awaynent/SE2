@@ -1,29 +1,42 @@
 import os
 import json
+import serial
+import time
 from datetime import datetime
+
 from face_verify import verify_face
 from voice_verify import verify_voice
 
 LOG_FILE = "access_log.txt"
 DB_FILE = "database.json"
 
-# -------------- OPTIONAL ARDUINO UNLOCK --------------
-# import serial
-# arduino = serial.Serial('COM4', 9600)
+# --------------------------------------------------
+# ARDUINO SERIAL SETUP
+# --------------------------------------------------
+ARDUINO_PORT = "COM4"   # 🔁 CHANGE if needed
+BAUD_RATE = 9600
+
+try:
+    arduino = serial.Serial(ARDUINO_PORT, BAUD_RATE, timeout=1)
+    time.sleep(2)  # allow Arduino reset
+    print("🔌 Arduino connected successfully")
+except Exception as e:
+    arduino = None
+    print(f"⚠️ Arduino not connected: {e}")
 
 # --------------------------------------------------
 # LOAD FACULTY INFO
 # --------------------------------------------------
 def get_faculty_info(faculty_id):
     if not os.path.exists(DB_FILE):
-        return None, None
+        return "UNKNOWN", "UNKNOWN"
 
     with open(DB_FILE, "r") as f:
         db = json.load(f)
 
     info = db.get(str(faculty_id))
     if not info:
-        return None, None
+        return "UNKNOWN", "UNKNOWN"
 
     return info.get("name", "UNKNOWN"), info.get("department", "UNKNOWN")
 
@@ -54,15 +67,19 @@ def log_access(faculty_id, method, status):
 def unlock_door(faculty_id, method):
     name, department = get_faculty_info(faculty_id)
 
-    print(f"\n🔓 ACCESS GRANTED")
+    print("\n🔓 ACCESS GRANTED")
     print(f"Faculty ID : {faculty_id}")
     print(f"Name       : {name}")
     print(f"Department : {department}")
 
     log_access(faculty_id, method, "GRANTED")
 
-    # Arduino unlock (optional)
-    # arduino.write(b"UNLOCK\n")
+    if arduino:
+        try:
+            arduino.write(b"UNLOCK\n")
+            print("🔌 Arduino command sent: UNLOCK")
+        except Exception as e:
+            print(f"⚠️ Arduino write error: {e}")
 
 def deny_access(method):
     print("\n❌ ACCESS DENIED")
